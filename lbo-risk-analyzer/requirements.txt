@@ -1,0 +1,10 @@
+pandas
+numpy
+numpy-financial
+streamlit
+openai
+python-dotenv
+scipy
+markdown2>=2.4.0
+weasyprint>=60.0
+matplotlib>=3.7.0
