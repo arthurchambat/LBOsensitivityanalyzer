@@ -3,11 +3,15 @@ PDF Export System for IC Reports
 Converts markdown + charts to professional PDF.
 """
 import markdown2
-from weasyprint import HTML, CSS
-from typing import Dict, Optional
-from datetime import datetime
 import os
 import tempfile
+from typing import Dict, Optional
+from datetime import datetime
+
+# Set library path for WeasyPrint on macOS
+os.environ['DYLD_LIBRARY_PATH'] = '/opt/homebrew/lib:' + os.environ.get('DYLD_LIBRARY_PATH', '')
+
+from weasyprint import HTML, CSS
 
 
 class PDFExporter:

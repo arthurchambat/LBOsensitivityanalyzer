@@ -7,10 +7,10 @@ import numpy_financial as npf
 import pandas as pd
 from typing import Dict, List, Any
 
-from capital_structure import CapitalStructure, CapitalStructureInputs
-from operating_model import OperatingModel, OperatingAssumptions
-from debt_model import DebtModel, DebtAssumptions
-from exit_model import ExitModel, ExitAssumptions
+from .capital_structure import CapitalStructure, CapitalStructureInputs
+from .operating_model import OperatingModel, OperatingAssumptions
+from .debt_model import DebtModel, DebtAssumptions
+from .exit_model import ExitModel, ExitAssumptions
 
 
 class LBOEngine:
