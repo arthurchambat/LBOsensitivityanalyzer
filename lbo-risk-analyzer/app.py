@@ -260,7 +260,8 @@ with col1:
     uploaded_file = st.file_uploader(
         "Upload CSV with historical financials",
         type=['csv'],
-        help="CSV with columns: year, revenue, ebitda"
+        help="CSV with columns: year, revenue, ebitda",
+        key="csv_uploader"
     )
 
 with col2:
@@ -270,22 +271,55 @@ with col2:
         st.session_state.data_uploaded = True
         st.rerun()
 
-if uploaded_file:
-    try:
-        ingestion = FinancialDataIngestion()
-        cleaned_data, warnings = ingestion.ingest_csv(uploaded_file)
-        
-        st.session_state.historical_data = cleaned_data
-        st.session_state.data_uploaded = True
-        
-        if warnings:
-            st.warning("**Validation Warnings:**\n" + "\n".join(f"- {w}" for w in warnings))
-        else:
-            st.success("✅ **[VALIDATED]** Data ingestion complete.")
-        
-        st.rerun()
-    except Exception as e:
-        st.error(f"Error processing file: {e}")
+# Process uploaded file (only if not already processed)
+if uploaded_file is not None and uploaded_file.name:
+    # Check if this is a new file (different from what's already loaded)
+    file_already_processed = False
+    if 'uploaded_filename' in st.session_state:
+        if st.session_state.uploaded_filename == uploaded_file.name and st.session_state.data_uploaded:
+            file_already_processed = True
+    
+    if not file_already_processed:
+        try:
+            ingestion = FinancialDataIngestion()
+            
+            # Show progress
+            with st.spinner("Processing CSV file..."):
+                cleaned_data, warnings = ingestion.ingest_csv(uploaded_file)
+            
+            # Only proceed if data is valid
+            if cleaned_data is not None and len(cleaned_data) > 0:
+                st.session_state.historical_data = cleaned_data
+                st.session_state.data_uploaded = True
+                st.session_state.uploaded_filename = uploaded_file.name
+                
+                # Show success with details
+                st.success(f"✅ **[VALIDATED]** Data ingestion complete - {len(cleaned_data)} years loaded")
+                
+                # Show what was detected (expandable for debugging)
+                with st.expander("📊 Detected Data Structure", expanded=False):
+                    st.write(f"**Columns detected:** {', '.join(cleaned_data.columns)}")
+                    st.write(f"**Years range:** {cleaned_data['year'].min():.0f} - {cleaned_data['year'].max():.0f}")
+                    st.dataframe(cleaned_data.head(), use_container_width=True)
+                
+                if warnings:
+                    st.warning("**Validation Warnings:**\n" + "\n".join(f"- {w}" for w in warnings))
+                
+                st.rerun()
+            else:
+                # Data validation failed
+                st.error("**❌ Data Validation Failed**")
+                if warnings:
+                    st.error("**Issues found:**\n" + "\n".join(f"- {w}" for w in warnings))
+                st.info("**Required CSV format:**\n- Column 1: `year` (or Year, Date, Period)\n- Column 2: `revenue` (or Revenue, Sales, Turnover)\n- Column 3: `ebitda` (or EBITDA)\n\n**Example:**\n```\nyear,revenue,ebitda\n2019,100,20\n2020,105,21\n2021,112,23\n```")
+                st.session_state.data_uploaded = False
+                st.session_state.historical_data = None
+                
+        except Exception as e:
+            st.error(f"❌ **Error processing file:** {e}")
+            st.info("Please ensure your CSV file:\n- Is properly formatted\n- Contains numeric values\n- Has required columns: year, revenue, ebitda")
+            st.session_state.data_uploaded = False
+            st.session_state.historical_data = None
 
 if st.session_state.data_uploaded and st.session_state.historical_data is not None:
     df = st.session_state.historical_data

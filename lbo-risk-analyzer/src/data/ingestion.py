@@ -189,6 +189,9 @@ class FinancialDataIngestion:
                 # File path
                 df = pd.read_csv(csv_file)
             
+            # Drop unnamed columns (index columns from exported CSVs)
+            df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+            
             # Normalize column names
             df = self.normalize_column_names(df)
             
