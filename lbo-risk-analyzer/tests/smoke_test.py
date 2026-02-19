@@ -39,7 +39,6 @@ def test_data_ingestion():
     assert 'ebitda_cagr' in summary, "Should calculate EBITDA CAGR"
     
     print("✅ Data ingestion test passed")
-    return df
 
 
 def test_lbo_model(df):
